@@ -1,0 +1,141 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace WindowsFormsApp2
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "bookStoreDataSet1.Customers". При необходимости она может быть перемещена или удалена.
+            this.customersTableAdapter.Fill(this.bookStoreDataSet1.Customers);
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "bookStoreDataSet.OrderStat". При необходимости она может быть перемещена или удалена.
+            this.orderStatTableAdapter.Fill(this.bookStoreDataSet.OrderStat);
+            lblSortInfo.Text = "Данные загружены";
+
+        }
+
+        private void ApplySort()
+        {
+            string sortField = "";
+            string sortFieldDisplay = "";
+
+            if (rbOrderId.Checked)
+            {
+                sortField = "Номер заказа";
+                sortFieldDisplay = "номеру заказа";
+            }
+            else if (rbOrderDate.Checked)
+            {
+                sortField = "Дата заказа";
+                sortFieldDisplay = "дате заказа";
+            }
+            else if (rbCustomer.Checked)
+            {
+                sortField = "Покупатель";
+                sortFieldDisplay = "покупателю";
+            }
+            else if (rbBook.Checked)
+            {
+                sortField = "Книга";
+                sortFieldDisplay = "книге";
+            }
+            else if (rbQuantity.Checked)
+            {
+                sortField = "Количество";
+                sortFieldDisplay = "количеству";
+            }
+            else if (rbTotalAmount.Checked)
+            {
+                sortField = "Сумма";
+                sortFieldDisplay = "сумме";
+            }
+
+            string sortDirection = rbAscending.Checked ? "ASC" : "DESC";
+            string sortDirectionDisplay = rbAscending.Checked ? "по возрастанию" : "по убыванию";
+            string sortInfo = $"Сортировка по {sortFieldDisplay} ({(rbAscending.Checked ? "по возрастанию" : "по убыванию")})";
+
+            orderStatBindingSource.Sort = sortField + " " + sortDirection;
+            lblSortInfo.Text = $"Сортировка по {sortFieldDisplay} ({sortDirectionDisplay})";
+        }
+
+        private void btnApplySort_Click(object sender, EventArgs e)
+        {
+            ApplySort();
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            string searchText = txtSearch.Text.Trim();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                orderStatBindingSource.RemoveFilter();
+                lblSortInfo.Text = "Поиск сброшен";
+            }
+            else
+            {
+                orderStatBindingSource.Filter = $"Книга LIKE '%{searchText}%'";
+                lblSortInfo.Text = $"Поиск по названию книги: '{searchText}'";
+            }
+        }
+
+        private void btnClearSearch_Click(object sender, EventArgs e)
+        {
+            txtSearch.Clear();
+            orderStatBindingSource.RemoveFilter();
+            lblSortInfo.Text = "Поиск сброшен";
+        }
+
+        private void txtSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnSearch_Click(sender, e);
+            }
+        }
+
+        private void dgvOrders_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void btnApplyCustomerFilter_Click(object sender, EventArgs e)
+        {
+            // Проверяем, что выбран покупатель
+            if (customersComboBox.SelectedIndex == -1 || customersComboBox.SelectedValue == null)
+            {
+                MessageBox.Show("Пожалуйста, выберите покупателя из списка", "Внимание");
+                return;
+            }
+
+            // Получаем имя покупателя (то, что видно в ComboBox)
+            string customerName = customersComboBox.Text;
+
+            // Применяем фильтр по имени (используем LIKE для частичного совпадения)
+            orderStatBindingSource.Filter = $"Покупатель LIKE '{customerName}'";
+
+            lblSortInfo.Text = $"Фильтр: покупатель '{customerName}'";
+        }
+
+        private void btnClearCustomerFilter_Click(object sender, EventArgs e)
+        {
+            // Сбрасываем фильтр
+            orderStatBindingSource.RemoveFilter();
+            customersComboBox.SelectedIndex = -1;
+            lblSortInfo.Text = "Фильтр по покупателю сброшен";
+        }
+    }
+}
